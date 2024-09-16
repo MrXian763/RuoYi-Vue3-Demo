@@ -16,7 +16,7 @@ axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
   baseURL: import.meta.env.VITE_APP_BASE_API,
-  // 超时
+  // 超时时间 毫秒
   timeout: 10000
 })
 
@@ -26,7 +26,7 @@ service.interceptors.request.use(config => {
   const isToken = (config.headers || {}).isToken === false
   // 是否需要防止数据重复提交
   const isRepeatSubmit = (config.headers || {}).repeatSubmit === false
-  if (getToken() && !isToken) {
+  if (getToken() && !isToken) { // 设置 token
     config.headers['Authorization'] = 'Bearer ' + getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
   }
   // get请求映射params参数
