@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <!-- 搜索表单 start -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="课程编码" prop="code">
         <el-input
@@ -40,7 +41,9 @@
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
+    <!-- 搜索表单 end -->
 
+    <!-- 按钮区域 start -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
@@ -82,7 +85,9 @@
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
+    <!-- 按钮区域 end -->
 
+    <!-- 表单数据 start -->
     <el-table v-loading="loading" :data="courseList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="课程id" align="center" prop="id" />
@@ -103,7 +108,9 @@
         </template>
       </el-table-column>
     </el-table>
+    <!-- 表单数据 end -->
     
+    <!-- 分页栏 start -->
     <pagination
       v-show="total>0"
       :total="total"
@@ -111,6 +118,7 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
+    <!-- 分页栏 end -->
 
     <!-- 添加或修改课程管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -152,23 +160,36 @@
 </template>
 
 <script setup name="Course">
+// 引入后端 API 请求接口
 import { listCourse, getCourse, delCourse, addCourse, updateCourse } from "@/api/course/course";
-
+// 获取当前实例代理对象，用于访问组件数据、方法
 const { proxy } = getCurrentInstance();
+// 获取课程学科的数据字典
 const { course_subject } = proxy.useDict('course_subject');
-
+// 课程数据列表
 const courseList = ref([]);
+// 是否显示弹框
 const open = ref(false);
+// 是否展示加载图标
 const loading = ref(true);
+// 是否展示搜索框
 const showSearch = ref(true);
+// 复选框 选中的课程数据 id 集合
 const ids = ref([]);
+// 复选框 是否单选，用于高亮修改、删除按钮
 const single = ref(true);
+// 复选框 是否多选，用于仅高亮删除按钮
 const multiple = ref(true);
+// 分页 总记录条数
 const total = ref(0);
+// 弹框标题 区分新增、修改
 const title = ref("");
 
+// 响应式数据
 const data = reactive({
+  // 新增或修改表单数据
   form: {},
+  // 搜索条件参数
   queryParams: {
     pageNum: 1,
     pageSize: 10,
@@ -177,6 +198,7 @@ const data = reactive({
     name: null,
     applicablePerson: null,
   },
+  // 表单校验规则
   rules: {
     code: [
       { required: true, message: "课程编码不能为空", trigger: "blur" }
@@ -199,6 +221,7 @@ const data = reactive({
   }
 });
 
+// 将data对象的三个属性转换为ref响应式对象
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询课程管理列表 */
@@ -211,7 +234,7 @@ function getList() {
   });
 }
 
-// 取消按钮
+// 取消按钮（用于取消新增、修改弹框）
 function cancel() {
   open.value = false;
   reset();
@@ -272,15 +295,16 @@ function handleUpdate(row) {
 
 /** 提交按钮 */
 function submitForm() {
+  // 校验表单规则 校验通过
   proxy.$refs["courseRef"].validate(valid => {
-    if (valid) {
+    if (valid) { // 修改操作
       if (form.value.id != null) {
         updateCourse(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
-      } else {
+      } else { // 新增操作
         addCourse(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
@@ -309,5 +333,6 @@ function handleExport() {
   }, `course_${new Date().getTime()}.xlsx`)
 }
 
+// 页面加载时执行-查询课程管理列表
 getList();
 </script>
