@@ -28,12 +28,13 @@ export default defineConfig(({ mode, command }) => {
       port: 80,
       host: true,
       open: true,
+      // 代理转发 实现跨域访问
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
-        '/dev-api': {
-          target: 'http://localhost:8080',
+        '/dev-api': { // 拦截请求路径包含 /dev-api 的请求
+          target: 'http://localhost:8080', // 转发的目标地址
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/dev-api/, '')
+          rewrite: (p) => p.replace(/^\/dev-api/, '') // 路径重写 替换前端请求路径
         }
       }
     },
