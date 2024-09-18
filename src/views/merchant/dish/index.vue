@@ -69,9 +69,13 @@
 
     <el-table v-loading="loading" :data="dishList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
+      <!-- <el-table-column label="主键" align="center" prop="id" /> -->
       <el-table-column label="菜品名称" align="center" prop="name" />
-      <el-table-column label="售价" align="center" prop="price" />
+      <el-table-column label="售价" align="center">
+        <template #default="scope">
+          <span>￥{{ scope.row.price }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="图片" align="center" prop="image" width="100">
         <template #default="scope">
           <image-preview :src="scope.row.image" :width="50" :height="50"/>
@@ -82,9 +86,9 @@
           <dict-tag :options="dish_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="最后操作时间" align="center" prop="updateTime" width="180">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
