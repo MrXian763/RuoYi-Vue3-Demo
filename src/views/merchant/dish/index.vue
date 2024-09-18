@@ -146,12 +146,30 @@
           <el-table-column label="序号" align="center" prop="index" width="50"/>
           <el-table-column label="口味名称" prop="name" width="150">
             <template #default="scope">
-              <el-input v-model="scope.row.name" placeholder="请输入口味名称" />
+              <!-- <el-input v-model="scope.row.name" placeholder="请输入口味名称" /> -->
+               <el-select v-model="scope.row.name" placeholder="请输入口味名称"
+               @change = changeFlavorName(scope.row)>
+                <el-option
+                  v-for="dishFlavor in dishFlavorListSelect"
+                  :key="dishFlavor.name"
+                  :label="dishFlavor.name"
+                  :value="dishFlavor.name"
+                ></el-option>
+               </el-select>
             </template>
           </el-table-column>
           <el-table-column label="口味列表" prop="value" width="150">
             <template #default="scope">
-              <el-input v-model="scope.row.value" placeholder="请输入口味列表" />
+              <!-- <el-input v-model="scope.row.value" placeholder="请输入口味列表" /> -->
+              <el-select v-model="scope.row.value" placeholder="请选择口味" multiple
+              @focus="focusFlavorName(scope.row)" >
+                <el-option
+                  v-for="value in checkValueList"
+                  :key="value"
+                  :label="value"
+                  :value="value"
+                ></el-option>
+               </el-select>
             </template>
           </el-table-column>
         </el-table>
@@ -168,6 +186,7 @@
 
 <script setup name="Dish">
 import { listDish, getDish, delDish, addDish, updateDish } from "@/api/merchant/dish";
+import { ref } from "vue";
 
 const { proxy } = getCurrentInstance();
 const { dish_status } = proxy.useDict('dish_status');
@@ -207,6 +226,33 @@ const data = reactive({
     ],
   }
 });
+
+// --------------------------------------------------------------
+// 定义口味名称和口味列表静态数据
+const dishFlavorListSelect = ref([
+  {name: "辣度", value: ["不辣","微辣","中辣","重辣"]},
+  {name: "忌口", value: ["不要葱","不要蒜","不要香菜","不要辣"]},
+  {name: "甜味", value: ["无糖","少糖","半糖","多糖"]}
+]);
+// 存储当前选中口味列表数组
+const checkValueList = ref([]);
+// 定义改变口味名称时更新当前选中的口味列表
+function changeFlavorName(row) {
+  // 清空当前行 value
+  row.value = [];
+  // 根据选中 name 查找静态数据的 value
+  dishFlavorListSelect.value.forEach(item => {
+    if (item.name === row.name) {
+      checkValueList.value = item.value;
+    }
+  });
+}
+// 定义口味列表获取焦点时更新当前选中的口味列表
+function focusFlavorName(row) {
+  // 根据选中name去查找静态数据的value
+  checkValueList.value = dishFlavorListSelect.value.find(item => item.name == row.name).value;
+}
+// --------------------------------------------------------------
 
 const { queryParams, form, rules } = toRefs(data);
 
@@ -275,6 +321,12 @@ function handleUpdate(row) {
   getDish(_id).then(response => {
     form.value = response.data;
     dishFlavorList.value = response.data.dishFlavorList;
+    // 将口味列表value字符串转为json数组
+    if(dishFlavorList.value != null) {
+      dishFlavorList.value.forEach(item => {
+        item.value = JSON.parse(item.value);
+      });
+    }
     open.value = true;
     title.value = "修改菜品管理";
   });
@@ -285,6 +337,12 @@ function submitForm() {
   proxy.$refs["dishRef"].validate(valid => {
     if (valid) {
       form.value.dishFlavorList = dishFlavorList.value;
+      // 将口味列表中value通过JSON工具类转为字符串
+      if(form.value.dishFlavorList != null) {
+        form.value.dishFlavorList.forEach(item=>{
+          item.value = JSON.stringify(item.value)
+        });
+      }
       if (form.value.id != null) {
         updateDish(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
